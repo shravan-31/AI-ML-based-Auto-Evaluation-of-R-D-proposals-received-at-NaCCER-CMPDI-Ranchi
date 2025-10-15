@@ -14,15 +14,24 @@ from typing import Dict, List, Any, Tuple
 warnings.filterwarnings('ignore')
 
 # Download required NLTK data
+# Handle NLTK downloads for cloud environments
 try:
     nltk.data.find('tokenizers/punkt')
 except LookupError:
-    nltk.download('punkt')
+    try:
+        nltk.download('punkt', quiet=True)
+    except Exception:
+        # If download fails (e.g., in cloud environments), continue without it
+        pass
 
 try:
     nltk.data.find('corpora/stopwords')
 except LookupError:
-    nltk.download('stopwords')
+    try:
+        nltk.download('stopwords', quiet=True)
+    except Exception:
+        # If download fails (e.g., in cloud environments), continue without it
+        pass
 
 class EnhancedRDPEvaluatorHIL:
     def __init__(self, model_type='sentence_bert'):
@@ -40,7 +49,12 @@ class EnhancedRDPEvaluatorHIL:
         elif model_type == 'tfidf':
             self.tfidf_vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
         
-        self.stop_words = set(stopwords.words('english'))
+        # Handle stopwords for NLTK (with fallback for cloud environments)
+        try:
+            self.stop_words = set(stopwords.words('english'))
+        except LookupError:
+            # Fallback if NLTK data is not available
+            self.stop_words = set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the', 'to', 'was', 'will', 'with'])
         
         # Default weights for combining scores
         self.novelty_weight = 0.20
