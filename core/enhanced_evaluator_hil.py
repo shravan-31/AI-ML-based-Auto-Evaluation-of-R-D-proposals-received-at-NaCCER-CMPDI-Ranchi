@@ -11,35 +11,7 @@ import os
 from typing import Dict, List, Any, Tuple
 warnings.filterwarnings('ignore')
 
-# Import NLTK conditionally
-try:
-    import nltk
-    from nltk.corpus import stopwords
-    NLTK_AVAILABLE = True
-    
-    # Download required NLTK data
-    # Handle NLTK downloads for cloud environments
-    try:
-        nltk.data.find('tokenizers/punkt')
-    except LookupError:
-        try:
-            nltk.download('punkt', quiet=True)
-        except Exception:
-            # If download fails (e.g., in cloud environments), continue without it
-            pass
-
-    try:
-        nltk.data.find('corpora/stopwords')
-    except LookupError:
-        try:
-            nltk.download('stopwords', quiet=True)
-        except Exception:
-            # If download fails (e.g., in cloud environments), continue without it
-            pass
-except ImportError:
-    NLTK_AVAILABLE = False
-    # Define fallback stopwords
-    stopwords = None
+# We'll handle NLTK imports within methods where needed, not at module level
 
 class EnhancedRDPEvaluatorHIL:
     def __init__(self, model_type='sentence_bert'):
@@ -57,15 +29,8 @@ class EnhancedRDPEvaluatorHIL:
         elif model_type == 'tfidf':
             self.tfidf_vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
         
-        # Handle stopwords for NLTK (with fallback for cloud environments)
-        if NLTK_AVAILABLE:
-            try:
-                self.stop_words = set(stopwords.words('english'))
-            except LookupError:
-                # Fallback if NLTK data is not available
-                self.stop_words = set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the', 'to', 'was', 'will', 'with'])
-        else:
-            self.stop_words = set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the', 'to', 'was', 'will', 'with'])
+        # Handle stopwords - we'll set this up when needed
+        self.stop_words = self._get_stopwords()
         
         # Default weights for combining scores
         self.novelty_weight = 0.20
@@ -122,6 +87,42 @@ class EnhancedRDPEvaluatorHIL:
             'benefit', 'improvement', 'enhancement', 'development',
             'rehabilitation', 'restoration', 'conservation'
         ]
+    
+    def _get_stopwords(self):
+        """Get stopwords with fallback for environments where NLTK is not available"""
+        # Handle stopwords for NLTK (with fallback for cloud environments)
+        try:
+            import nltk
+            from nltk.corpus import stopwords
+            
+            # Download required NLTK data
+            # Handle NLTK downloads for cloud environments
+            try:
+                nltk.data.find('tokenizers/punkt')
+            except LookupError:
+                try:
+                    nltk.download('punkt', quiet=True)
+                except Exception:
+                    # If download fails (e.g., in cloud environments), continue without it
+                    pass
+
+            try:
+                nltk.data.find('corpora/stopwords')
+            except LookupError:
+                try:
+                    nltk.download('stopwords', quiet=True)
+                except Exception:
+                    # If download fails (e.g., in cloud environments), continue without it
+                    pass
+            
+            try:
+                return set(stopwords.words('english'))
+            except LookupError:
+                # Fallback if NLTK data is not available
+                return set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the', 'to', 'was', 'will', 'with'])
+        except ImportError:
+            # Fallback if NLTK is not available
+            return set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the', 'to', 'was', 'will', 'with'])
     
     def set_weights(self, weights: Dict[str, float]) -> bool:
         """
