@@ -4,22 +4,38 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
-import nltk
-from nltk.corpus import stopwords
 import re
 import warnings
 warnings.filterwarnings('ignore')
 
-# Download required NLTK data
+# Handle NLTK imports gracefully
 try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
+    import nltk
+    from nltk.corpus import stopwords
+    NLTK_AVAILABLE = True
+    
+    # Download required NLTK data
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        try:
+            nltk.download('punkt', quiet=True)
+        except Exception:
+            # If download fails (e.g., in cloud environments), continue without it
+            pass
 
-try:
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords')
+    try:
+        nltk.data.find('corpora/stopwords')
+    except LookupError:
+        try:
+            nltk.download('stopwords', quiet=True)
+        except Exception:
+            # If download fails (e.g., in cloud environments), continue without it
+            pass
+except ImportError:
+    NLTK_AVAILABLE = False
+    # Define fallback stopwords
+    stopwords = None
 
 class RDPEvaluator:
     def __init__(self, model_type='sentence_bert'):
@@ -37,7 +53,15 @@ class RDPEvaluator:
         elif model_type == 'tfidf':
             self.tfidf_vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
         
-        self.stop_words = set(stopwords.words('english'))
+        # Handle stopwords for NLTK (with fallback for cloud environments)
+        if NLTK_AVAILABLE:
+            try:
+                self.stop_words = set(stopwords.words('english'))
+            except LookupError:
+                # Fallback if NLTK data is not available
+                self.stop_words = set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the', 'to', 'was', 'will', 'with'])
+        else:
+            self.stop_words = set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the', 'to', 'was', 'will', 'with'])
         
         # Weights for combining scores
         self.novelty_weight = 0.4
@@ -387,53 +411,6 @@ def main():
     # Display top proposals
     evaluator.display_top_proposals(evaluated_proposals, top_n=3)
 
-def create_sample_data():
-    """
-    Create sample data for demonstration
-    """
-    # Sample past proposals
-    past_data = {
-        'Proposal_ID': ['P001', 'P002', 'P003', 'P004', 'P005'],
-        'Title': [
-            'Machine Learning for Image Recognition',
-            'Cloud Computing Infrastructure',
-            'Data Mining Techniques',
-            'Natural Language Processing Framework',
-            'IoT Security Solutions'
-        ],
-        'Abstract': [
-            'This project focuses on developing advanced machine learning algorithms for image recognition tasks.',
-            'Research on scalable cloud computing infrastructure for enterprise applications.',
-            'Exploring data mining techniques for extracting valuable insights from large datasets.',
-            'Development of a comprehensive framework for natural language processing applications.',
-            'Investigating security challenges and solutions for Internet of Things devices.'
-        ],
-        'Funding_Requested': [50000, 75000, 30000, 60000, 45000]
-    }
-    
-    past_df = pd.DataFrame(past_data)
-    past_df.to_csv('sample_past_proposals.csv', index=False)
-    
-    # Sample new proposals
-    new_data = {
-        'Proposal_ID': ['N001', 'N002', 'N003', 'N004', 'N005'],
-        'Title': [
-            'Deep Learning for Medical Imaging',
-            'Blockchain for Supply Chain Management',
-            'Reinforcement Learning in Robotics',
-            'Computer Vision for Autonomous Vehicles',
-            'Quantum Computing Algorithms'
-        ],
-        'Abstract': [
-            'Using deep learning techniques to improve medical imaging diagnostics and accuracy.',
-            'Applying blockchain technology to enhance transparency and security in supply chains.',
-            'Research on reinforcement learning algorithms for adaptive robotic control systems.',
-            'Developing computer vision systems for real-time decision making in autonomous vehicles.',
-            'Exploring quantum computing algorithms for solving complex computational problems.'
-        ],
-        'Funding_Requested': [80000, 70000, 65000, 90000, 100000]
-    }
-    
 def create_sample_data():
     """
     Create sample data for demonstration
