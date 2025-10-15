@@ -4,8 +4,6 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
-import nltk
-from nltk.corpus import stopwords
 import re
 import warnings
 import json
@@ -13,25 +11,35 @@ import os
 from typing import Dict, List, Any, Tuple
 warnings.filterwarnings('ignore')
 
-# Download required NLTK data
-# Handle NLTK downloads for cloud environments
+# Import NLTK conditionally
 try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
+    import nltk
+    from nltk.corpus import stopwords
+    NLTK_AVAILABLE = True
+    
+    # Download required NLTK data
+    # Handle NLTK downloads for cloud environments
     try:
-        nltk.download('punkt', quiet=True)
-    except Exception:
-        # If download fails (e.g., in cloud environments), continue without it
-        pass
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        try:
+            nltk.download('punkt', quiet=True)
+        except Exception:
+            # If download fails (e.g., in cloud environments), continue without it
+            pass
 
-try:
-    nltk.data.find('corpora/stopwords')
-except LookupError:
     try:
-        nltk.download('stopwords', quiet=True)
-    except Exception:
-        # If download fails (e.g., in cloud environments), continue without it
-        pass
+        nltk.data.find('corpora/stopwords')
+    except LookupError:
+        try:
+            nltk.download('stopwords', quiet=True)
+        except Exception:
+            # If download fails (e.g., in cloud environments), continue without it
+            pass
+except ImportError:
+    NLTK_AVAILABLE = False
+    # Define fallback stopwords
+    stopwords = None
 
 class EnhancedRDPEvaluatorHIL:
     def __init__(self, model_type='sentence_bert'):
@@ -50,10 +58,13 @@ class EnhancedRDPEvaluatorHIL:
             self.tfidf_vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
         
         # Handle stopwords for NLTK (with fallback for cloud environments)
-        try:
-            self.stop_words = set(stopwords.words('english'))
-        except LookupError:
-            # Fallback if NLTK data is not available
+        if NLTK_AVAILABLE:
+            try:
+                self.stop_words = set(stopwords.words('english'))
+            except LookupError:
+                # Fallback if NLTK data is not available
+                self.stop_words = set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the', 'to', 'was', 'will', 'with'])
+        else:
             self.stop_words = set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the', 'to', 'was', 'will', 'with'])
         
         # Default weights for combining scores
