@@ -18,7 +18,7 @@ An AI/ML system to automatically evaluate R&D proposals based on novelty, fundin
 1. Clone or download this repository
 2. Install the required packages:
    ```bash
-   pip install -r requirements.txt
+   pip install -r docs/requirements.txt
    ```
 
 ## Usage
@@ -27,21 +27,21 @@ An AI/ML system to automatically evaluate R&D proposals based on novelty, fundin
 
 Run the evaluation script directly:
 ```bash
-python proposal_evaluator.py
+python core/enhanced_evaluator.py
 ```
 
 To use with your own data:
 1. Prepare two CSV files:
    - `past_proposals.csv`: Contains historical proposals with columns [Proposal_ID, Title, Abstract, Funding_Requested]
    - `new_proposals.csv`: Contains proposals to evaluate with the same columns
-2. Modify the `main()` function in `proposal_evaluator.py` to use your file paths
+2. Modify the `main()` function in `core/enhanced_evaluator.py` to use your file paths
 3. Run the script
 
 ### Web Interface
 
 Launch the Streamlit web app:
 ```bash
-streamlit run app.py
+streamlit run core/app_hil.py
 ```
 
 In the web interface, you can:
@@ -51,6 +51,42 @@ In the web interface, you can:
 - View ranked proposals
 - Download results as CSV
 - Visualize score distributions
+
+## Deployment
+
+### Streamlit Cloud Deployment
+
+1. Push your code to a GitHub repository
+2. Go to [Streamlit Cloud](https://share.streamlit.io/)
+3. Connect your GitHub repository
+4. Select the `core/app_hil.py` file as the entry point
+5. Streamlit Cloud will automatically detect and install dependencies from `docs/requirements.txt`
+
+### Docker Deployment
+
+#### Using Docker Compose (Recommended)
+
+```bash
+# Navigate to the docs directory
+cd docs
+
+# Build and run the containers
+docker-compose up --build
+```
+
+The application will be available at:
+- Streamlit UI: http://localhost:8501
+- API (if applicable): http://localhost:5000
+
+### Manual Deployment
+
+```bash
+# Install dependencies
+pip install -r docs/requirements.txt
+
+# Run the application
+streamlit run core/app_hil.py
+```
 
 ## How It Works
 
@@ -90,9 +126,10 @@ Weights can be adjusted in the web interface.
 
 ## File Structure
 
-- `proposal_evaluator.py`: Core evaluation engine
-- `app.py`: Streamlit web interface
-- `requirements.txt`: Python package dependencies
+- `core/`: Main application logic
+- `models/`: Individual model components
+- `utils/`: Utility functions and helpers
+- `docs/requirements.txt`: Python package dependencies
 - `sample_past_proposals.csv`: Example historical proposals
 - `sample_new_proposals.csv`: Example proposals to evaluate
 
@@ -116,10 +153,10 @@ P001,"Machine Learning for Image Recognition","This project focuses on developin
 ## Customization
 
 You can customize:
-1. Technical keywords for feasibility scoring (modify `technical_keywords` in `RDPEvaluator` class)
+1. Technical keywords for feasibility scoring (modify `technical_keywords` in `EnhancedRDPEvaluatorHIL` class)
 2. Coal industry keywords for relevance scoring (modify `calculate_coal_relevance_score` method)
 3. Weighting scheme (adjust weights in web interface or modify default values)
-4. Sentence transformer model (change model name in `RDPEvaluator.__init__`)
+4. Sentence transformer model (change model name in `EnhancedRDPEvaluatorHIL.__init__`)
 5. Text preprocessing steps (modify `preprocess_text` method)
 
 ## License

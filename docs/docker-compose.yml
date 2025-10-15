@@ -2,11 +2,13 @@ version: '3.8'
 
 services:
   rdp-evaluator:
-    build: .
+    build: 
+      context: ..
+      dockerfile: docs/Dockerfile
     ports:
       - "8501:8501"  # Streamlit web interface
       - "5000:5000"  # Flask API
     volumes:
-      - .:/app
+      - ..:/app
     environment:
       - PYTHONUNBUFFERED=1
