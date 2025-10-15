@@ -12,7 +12,8 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from core.enhanced_evaluator_hil import EnhancedRDPEvaluatorHIL
+# Import EnhancedRDPEvaluatorHIL only when needed to avoid NLTK import issues
+# from core.enhanced_evaluator_hil import EnhancedRDPEvaluatorHIL
 from core.enhanced_evaluator import create_sample_data  # Import from enhanced_evaluator instead
 from utils.document_parser import DocumentParser
 from utils.pdf_generator import PDFGenerator
@@ -223,7 +224,8 @@ elif page == "Upload & Evaluate":
         if st.button("Evaluate Proposals with Custom Weights", type="primary"):
             try:
                 with st.spinner("Evaluating proposals... This may take a moment."):
-                    # Initialize evaluator
+                    # Initialize evaluator - import locally to avoid NLTK issues
+                    from core.enhanced_evaluator_hil import EnhancedRDPEvaluatorHIL
                     evaluator = EnhancedRDPEvaluatorHIL()
                     
                     # Set custom weights

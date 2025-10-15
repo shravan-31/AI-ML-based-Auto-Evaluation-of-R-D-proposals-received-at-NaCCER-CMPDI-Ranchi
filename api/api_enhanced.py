@@ -8,7 +8,8 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from core.enhanced_evaluator_hil import EnhancedRDPEvaluatorHIL
+# Import EnhancedRDPEvaluatorHIL locally where needed to avoid NLTK import issues
+# from core.enhanced_evaluator_hil import EnhancedRDPEvaluatorHIL
 from core.proposal_evaluator import create_sample_data
 from utils.document_parser import DocumentParser
 from utils.pdf_generator import PDFGenerator
@@ -22,6 +23,8 @@ from models.model_monitoring import ModelMonitor
 app = Flask(__name__)
 
 # Initialize components
+# Import EnhancedRDPEvaluatorHIL locally to avoid NLTK import issues
+from core.enhanced_evaluator_hil import EnhancedRDPEvaluatorHIL
 evaluator = EnhancedRDPEvaluatorHIL()
 monitor = ModelMonitor("proposal_evaluator")
 
@@ -107,6 +110,8 @@ def evaluate_proposals():
         custom_weights = data.get('weights', None)
         
         # Create evaluator with specified model type
+        # Import EnhancedRDPEvaluatorHIL locally to avoid NLTK import issues
+        from core.enhanced_evaluator_hil import EnhancedRDPEvaluatorHIL
         evaluator = EnhancedRDPEvaluatorHIL(model_type=model_type)
         
         # Set custom weights if provided
